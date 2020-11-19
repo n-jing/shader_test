@@ -6,6 +6,11 @@
 
 namespace Jing
 {
+  //! \brief generate vertex array buffer
+  //! \param [in] vert_len, vertices size
+  //! \param [in] vertices, address of vertices
+  //! \param [in] R, size of one vertex and its attribute
+  //! \param [in] len, size of each attribute
   template<typename T = float>
   void InitBuffer(unsigned int &VAO, unsigned int &VBO, unsigned int vert_len, T *vertices, int R,
                   const std::vector<int> &len, const std::vector<int> &idx)

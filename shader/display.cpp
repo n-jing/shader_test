@@ -38,7 +38,6 @@ int main()
   Shader planeShader("../shader/plane.vs", "../shader/plane.fs");
   Shader depthShader("../shader/depth.vs", "../shader/depth.fs");
   Shader shadowShader("../shader/shadow.vs", "../shader/shadow.fs");
-  Shader quadShader("../shader/shadow_depth.vs", "../shader/shadow_depth.fs");
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float vertices[] = {
@@ -98,29 +97,18 @@ int main()
     1, 2, 3  // second triangle
   };
 
-  float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-    // positions   // texCoords
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    -1.0f, -1.0f,  0.0f, 0.0f,
-    1.0f, -1.0f,  1.0f, 0.0f,
-
-    -1.0f,  1.0f,  0.0f, 1.0f,
-    1.0f, -1.0f,  1.0f, 0.0f,
-    1.0f,  1.0f,  1.0f, 1.0f
-  };
-
   // first, configure the cube's VAO (and VBO)
   unsigned int cubeVBO, cubeVAO;
   InitBuffer(cubeVAO, cubeVBO, sizeof(vertices), vertices, 6, {3, 3}, {0, 3});
   unsigned int planeVBO, planeVAO, planeEBO;
   InitBufferEBO(planeVAO, planeVBO, planeEBO, sizeof(plane_vertices), plane_vertices, 8,
                 sizeof(plane_indices), plane_indices, {3, 3, 2}, {0, 3, 6});
-  unsigned int quadVAO, quadVBO;
-  InitBuffer(quadVAO, quadVBO, sizeof(quadVertices), quadVertices, 4, {2, 2}, {0, 2});
-  
   unsigned int texture = loadTexture("../grid.png");
+  planeShader.use();
+  planeShader.setInt("shadowMap", 0);
+  planeShader.setInt("texture1", 1);
 
-
+  
   unsigned int depthMapFBO;
   glGenFramebuffers(1, &depthMapFBO);
   // create depth texture
@@ -194,7 +182,7 @@ int main()
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    glClearColor(1.f, 1.f, 0.f, 1.0f);
+    glClearColor(1.f, 1.f, 1.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // be sure to activate shader when setting uniforms/drawing objects
@@ -219,6 +207,21 @@ int main()
     // render the cube
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+    // render plane
+    planeShader.use();
+    planeShader.setMat4("projection", projection);
+    planeShader.setMat4("view", view);
+    planeShader.setMat4("model", model);
+    planeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+    planeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    planeShader.setVec3("lightPos", lightPos);
+    planeShader.setVec3("viewPos", camera.Position);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    
     glBindVertexArray(planeVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
