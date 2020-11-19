@@ -1,5 +1,5 @@
 ADD_LIBRARY(glad STATIC ${CMAKE_SOURCE_DIR}/extern/glad/src/glad.c)
-TARGET_INCLUDE_DIRECTORIES(glad PUBLIC ${CMAKE_SOURCE_DIR}/extern/glad/include ${CMAKE_SOURCE_DIR}/extern/glm)
+TARGET_INCLUDE_DIRECTORIES(glad PUBLIC ${CMAKE_SOURCE_DIR}/extern/glad/include)
 
 find_package(GLEW REQUIRED)
 if (GLEW_FOUND)
@@ -12,6 +12,7 @@ find_package(assimp REQUIRED)
 
 ADD_LIBRARY(win_img stb_image.cpp init_window.cpp)
 TARGET_INCLUDE_DIRECTORIES(win_img PUBLIC  ${CMAKE_SOURCE_DIR}/extern/glad/include)
+TARGET_LINK_LIBRARIES(win_img glfw)
 
 ADD_EXECUTABLE(display display.cpp)
 TARGET_LINK_LIBRARIES(display glad dl GL GLU glut glfw ${ASSIMP_LIBRARIES} win_img)
