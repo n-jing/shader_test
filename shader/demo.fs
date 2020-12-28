@@ -3,6 +3,7 @@ out vec4 FragColor;
 
 in vec3 Normal;  
 in vec3 FragPos;  
+in float v_depth;
   
 uniform vec3 lightPos; 
 uniform vec3 viewPos; 
@@ -29,5 +30,27 @@ void main()
   vec3 specular = specularStrength * spec * lightColor;  
         
   vec3 result = (ambient + diffuse + specular) * objectColor;
-  FragColor = vec4(result, 1.0);
+
+  float blur = 0;
+  float near_distance = 3.0;
+  float far_distance = 3.0;
+  float near_plane = 3.0;
+  float far_plane = 4.0;
+
+  if(v_depth <= near_plane && v_depth >= far_plane)
+  {
+    blur = 0;
+  }
+  else if(v_depth > near_plane)
+  {
+    blur = clamp(v_depth, near_plane, near_plane + near_distance);
+    blur = (blur - near_plane) / near_distance;
+  }
+  else if(v_depth < far_plane)
+  {
+    blur = clamp(v_depth, far_plane - far_distance, far_plane);
+    blur = (far_plane - blur) / far_distance;
+  }
+
+  FragColor = vec4(result, 1.0f);
 } 

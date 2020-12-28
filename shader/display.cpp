@@ -34,10 +34,11 @@ int main()
 
   // build and compile our shader zprogram
   // ------------------------------------
-  Shader lightingShader("../shader/demo.vs", "../shader/demo.fs");
   Shader planeShader("../shader/plane.vs", "../shader/plane.fs");
   Shader depthShader("../shader/depth.vs", "../shader/depth.fs");
   Shader shadowShader("../shader/shadow.vs", "../shader/shadow.fs");
+  Shader dofShader("../shader/dof.vs", "../shader/dof.fs");
+  
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
   float vertices[] = {
@@ -97,12 +98,27 @@ int main()
     1, 2, 3  // second triangle
   };
 
+  float screen_quad[] = {
+    1.0f,  1.0f, 0.0f, 1.0f, 1.0f,  // top right
+    1.0f, -1.0f, 0.0f,  1.0f, 0.0f,// bottom right
+    -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,// bottom left
+    -1.0f,  1.0f, 0.0f,   0.0f, 1.0f// top left 
+  };
+  unsigned int screen_indices[] = {  // note that we start from 0!
+    0, 1, 3,  // first Triangle
+    1, 2, 3   // second Triangle
+  };
+
   // first, configure the cube's VAO (and VBO)
   unsigned int cubeVBO, cubeVAO;
   InitBuffer(cubeVAO, cubeVBO, sizeof(vertices), vertices, 6, {3, 3}, {0, 3});
   unsigned int planeVBO, planeVAO, planeEBO;
   InitBufferEBO(planeVAO, planeVBO, planeEBO, sizeof(plane_vertices), plane_vertices, 8,
                 sizeof(plane_indices), plane_indices, {3, 3, 2}, {0, 3, 6});
+  unsigned int screenVBO, screenVAO, screenEBO;
+  InitBufferEBO(screenVAO, screenVBO, screenEBO, sizeof(screen_quad), screen_quad, 5,
+                sizeof(screen_indices), screen_indices, {3, 2}, {0, 3});
+
   unsigned int texture = loadTexture("../grid.png");
   planeShader.use();
   planeShader.setInt("shadowMap", 0);
@@ -130,7 +146,22 @@ int main()
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+  unsigned int dofFBO;
+  glGenFramebuffers(1, &dofFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, dofFBO);
 
+  unsigned int sceneBuffer;
+  glGenTextures(1, &sceneBuffer);
+  glBindTexture(GL_TEXTURE_2D, sceneBuffer);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
+  glBindTexture(GL_TEXTURE_2D, 0);
+
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sceneBuffer, 0);
+  
 // render loop
   // -----------
   float lastFrame = 0.0f;
@@ -161,32 +192,30 @@ int main()
     lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     lightSpaceMatrix = lightProjection * lightView;
     // render scene from light's point of view
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);  
     depthShader.use();
     depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     glm::mat4 depthmodel = glm::mat4(1.0f);
     depthShader.setMat4("model", depthmodel);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
-    glClear(GL_DEPTH_BUFFER_BIT);
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, woodTexture);
     glBindVertexArray(planeVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
-    depthmodel = glm::translate(depthmodel, lightPos);
-    depthmodel = glm::scale(depthmodel, glm::vec3(0.5f, 0.5f, 0.5f));
-    glBindVertexArray(planeVAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
     
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, dofFBO);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glClearColor(1.f, 1.f, 1.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     // be sure to activate shader when setting uniforms/drawing objects
     shadowShader.use();
+    glEnable(GL_DEPTH_TEST);  
     shadowShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
     shadowShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     shadowShader.setVec3("lightPos", lightPos);
@@ -210,6 +239,7 @@ int main()
 
     // render plane
     planeShader.use();
+    glEnable(GL_DEPTH_TEST);  
     planeShader.setMat4("projection", projection);
     planeShader.setMat4("view", view);
     planeShader.setMat4("model", model);
@@ -224,6 +254,21 @@ int main()
     
     glBindVertexArray(planeVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+    glClearColor(1.f, 1.f, 1.f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    dofShader.use();
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, sceneBuffer);
+    // dofShader.setVec2("screen_size", 200.0f, 100.0f);
+    
+    glBindVertexArray(screenVAO);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
 
     // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
     // -------------------------------------------------------------------------------

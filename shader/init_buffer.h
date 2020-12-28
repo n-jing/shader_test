@@ -29,6 +29,8 @@ namespace Jing
       glVertexAttribPointer(i, len[i], GL_FLOAT, GL_FALSE, R * sizeof(T), (void*)(idx[i] * sizeof(T)));
       glEnableVertexAttribArray(i);
     }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0); 
   }
   
   template<typename T = float>
@@ -54,6 +56,8 @@ namespace Jing
       glVertexAttribPointer(i, len[i], GL_FLOAT, GL_FALSE, R * sizeof(T), (void*)(idx[i] * sizeof(T)));
       glEnableVertexAttribArray(i);
     }
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0); 
   }
 }
 
