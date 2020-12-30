@@ -30,7 +30,7 @@ int main()
   const unsigned int SCR_WIDTH = 800;
   const unsigned int SCR_HEIGHT = 600;
 
-  GLFWwindow* window = InitWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+  GLFWwindow* window = InitWindow(SCR_WIDTH, SCR_HEIGHT, "depth_of_field");
 
   // build and compile our shader zprogram
   // ------------------------------------

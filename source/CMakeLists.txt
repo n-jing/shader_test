@@ -8,8 +8,9 @@ if (GLEW_FOUND)
   link_libraries(${GLEW_LIBRARIES})
 endif()
 
+FIND_PACKAGE(assimp REQUIRED)
 
 ADD_LIBRARY(win_img stb_image.cpp init_window.cpp)
-TARGET_INCLUDE_DIRECTORIES(win_img PUBLIC  ${CMAKE_SOURCE_DIR}/extern/glad/include)
+TARGET_INCLUDE_DIRECTORIES(win_img PUBLIC  ${CMAKE_SOURCE_DIR}/extern/glad/include  ${ASSIMP_LIBRARIES})
 TARGET_LINK_LIBRARIES(win_img glfw)
 

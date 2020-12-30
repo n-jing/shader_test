@@ -30,7 +30,7 @@ int main()
   const unsigned int SCR_WIDTH = 800;
   const unsigned int SCR_HEIGHT = 600;
 
-  GLFWwindow* window = InitWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL");
+  GLFWwindow* window = InitWindow(SCR_WIDTH, SCR_HEIGHT, "shadow_mapping");
 
   // build and compile our shader zprogram
   // ------------------------------------
@@ -104,7 +104,7 @@ int main()
   InitBufferEBO(planeVAO, planeVBO, planeEBO, sizeof(plane_vertices), plane_vertices, 8,
                 sizeof(plane_indices), plane_indices, {3, 3, 2}, {0, 3, 6});
 
-  unsigned int texture = loadTexture("../grid.png");
+  unsigned int texture = loadTexture("../resource/grid.png");
   planeShader.use();
   planeShader.setInt("shadowMap", 0);
   planeShader.setInt("texture1", 1);
