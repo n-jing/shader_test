@@ -9,11 +9,13 @@
 #include "camera.h"
 #include "init_window.h"
 #include "init_buffer.h"
+#include "model.h"
+
 
 #include <iostream>
 
 // camera
-Camera camera(glm::vec3(0.0f, 4.0f, 5.0f));
+Camera camera(glm::vec3(0.0f, 2.5f, 10.0f));
 
 // lighting
 // glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
@@ -38,53 +40,9 @@ int main()
   Shader depthShader("../shadow_mapping/depth.vs", "../shadow_mapping/depth.fs");
   Shader shadowShader("../shadow_mapping/shadow.vs", "../shadow_mapping/shadow.fs");
   
-  // set up vertex data (and buffer(s)) and configure vertex attributes
-  // ------------------------------------------------------------------
-  float vertices[] = {
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+  Model scene("../resource/bunny.obj");
 
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-    0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-    -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-    0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-    -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-  };
-
-  float level = -0.5;
+  float level = -2.0;
   float plane_vertices[] = {
     // positions          // colors           // texture coords
     100.5f,  level, 100.0f,   0.0f, 1.0f, 0.0f,   100.0f, 100.0f, // top right
@@ -97,9 +55,6 @@ int main()
     1, 2, 3  // second triangle
   };
 
-  // first, configure the cube's VAO (and VBO)
-  unsigned int cubeVBO, cubeVAO;
-  InitBuffer(cubeVAO, cubeVBO, sizeof(vertices), vertices, 6, {3, 3}, {0, 3});
   unsigned int planeVBO, planeVAO, planeEBO;
   InitBufferEBO(planeVAO, planeVBO, planeEBO, sizeof(plane_vertices), plane_vertices, 8,
                 sizeof(plane_indices), plane_indices, {3, 3, 2}, {0, 3, 6});
@@ -108,6 +63,10 @@ int main()
   planeShader.use();
   planeShader.setInt("shadowMap", 0);
   planeShader.setInt("texture1", 1);
+  shadowShader.use();
+  shadowShader.setInt("shadowMap", 0);
+  shadowShader.setInt("texture_diffuse1", 0);
+  
 
   
   unsigned int depthMapFBO;
@@ -168,14 +127,14 @@ int main()
     depthShader.use();
     depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     glm::mat4 depthmodel = glm::mat4(1.0f);
+    depthmodel = glm::scale(depthmodel, glm::vec3(0.008f, 0.008f, 0.008f));
     depthShader.setMat4("model", depthmodel);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     // glActiveTexture(GL_TEXTURE0);
     // glBindTexture(GL_TEXTURE_2D, woodTexture);
     glBindVertexArray(planeVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
+    scene.Draw(depthShader);
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
@@ -199,19 +158,18 @@ int main()
     shadowShader.setMat4("projection", projection);
     shadowShader.setMat4("view", view);
     glm::mat4 model = glm::mat4(1.0f);
+    model = glm::scale(model, glm::vec3(0.008f, 0.008f, 0.008f));
     shadowShader.setMat4("model", model);
     shadowShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     
-    // render the cube
-    glBindVertexArray(cubeVAO);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-
+    scene.Draw(shadowShader);
+    
     // render plane
     planeShader.use();
     glEnable(GL_DEPTH_TEST);  
     planeShader.setMat4("projection", projection);
     planeShader.setMat4("view", view);
-    planeShader.setMat4("model", model);
+    planeShader.setMat4("model", glm::mat4(1.0f));
     planeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     planeShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     planeShader.setVec3("lightPos", lightPos);
@@ -233,8 +191,6 @@ int main()
 
   // optional: de-allocate all resources once they've outlived their purpose:
   // ------------------------------------------------------------------------
-  glDeleteVertexArrays(1, &cubeVAO);
-  glDeleteBuffers(1, &cubeVBO);
 
   // glfw: terminate, clearing all previously allocated GLFW resources.
   // ------------------------------------------------------------------

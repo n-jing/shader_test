@@ -3,8 +3,9 @@
 
 #include <glad/glad.h> 
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include "../extern/glm/glm/glm.hpp"
+#include "../extern/glm/glm/gtc/matrix_transform.hpp"
+
 #include <stb_image.h>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -20,7 +21,7 @@
 #include <map>
 #include <vector>
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
+unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
 class Model 
 {
@@ -28,11 +29,11 @@ public:
   // model data 
   std::vector<Texture> textures_loaded;	// stores all the textures loaded so far, optimization to make sure textures aren't loaded more than once.
   std::vector<Mesh>    meshes;
-  string directory;
+  std::string directory;
   bool gammaCorrection;
 
   // constructor, expects a filepath to a 3D model.
-  Model(string const &path, bool gamma = false) : gammaCorrection(gamma)
+  Model(std::string const &path, bool gamma = false) : gammaCorrection(gamma)
     {
       loadModel(path);
     }
@@ -46,15 +47,16 @@ public:
     
 private:
   // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-  void loadModel(string const &path)
+  void loadModel(std::string const &path)
     {
       // read file via ASSIMP
       Assimp::Importer importer;
-      const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+      const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs
+                                               | aiProcess_CalcTangentSpace | aiProcess_GenNormals);
       // check for errors
       if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
       {
-        cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << endl;
+        std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
       }
       // retrieve the directory path of the filepath
@@ -94,17 +96,17 @@ private:
       for(unsigned int i = 0; i < mesh->mNumVertices; i++)
       {
         Vertex vertex;
-        glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
+        glm::vec3 attr; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         // positions
-        vector.x = mesh->mVertices[i].x;
-        vector.y = mesh->mVertices[i].y;
-        vector.z = mesh->mVertices[i].z;
-        vertex.Position = vector;
+        attr.x = mesh->mVertices[i].x;
+        attr.y = mesh->mVertices[i].y;
+        attr.z = mesh->mVertices[i].z;
+        vertex.Position = attr;
         // normals
-        vector.x = mesh->mNormals[i].x;
-        vector.y = mesh->mNormals[i].y;
-        vector.z = mesh->mNormals[i].z;
-        vertex.Normal = vector;
+        attr.x = mesh->mNormals[i].x;
+        attr.y = mesh->mNormals[i].y;
+        attr.z = mesh->mNormals[i].z;
+        vertex.Normal = attr;
         // texture coordinates
         if(mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
         {
@@ -118,15 +120,15 @@ private:
         else
           vertex.TexCoords = glm::vec2(0.0f, 0.0f);
         // tangent
-        vector.x = mesh->mTangents[i].x;
-        vector.y = mesh->mTangents[i].y;
-        vector.z = mesh->mTangents[i].z;
-        vertex.Tangent = vector;
+        attr.x = mesh->mTangents[i].x;
+        attr.y = mesh->mTangents[i].y;
+        attr.z = mesh->mTangents[i].z;
+        vertex.Tangent = attr;
         // bitangent
-        vector.x = mesh->mBitangents[i].x;
-        vector.y = mesh->mBitangents[i].y;
-        vector.z = mesh->mBitangents[i].z;
-        vertex.Bitangent = vector;
+        attr.x = mesh->mBitangents[i].x;
+        attr.y = mesh->mBitangents[i].y;
+        attr.z = mesh->mBitangents[i].z;
+        vertex.Bitangent = attr;
         vertices.push_back(vertex);
       }
       // now wak through each of the mesh's faces (a face is a mesh its triangle) and retrieve the corresponding vertex indices.
@@ -147,10 +149,10 @@ private:
       // normal: texture_normalN
 
       // 1. diffuse maps
-      vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+      std::vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
       textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
       // 2. specular maps
-      vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
+      std::vector<Texture> specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
       textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
       // 3. normal maps
       std::vector<Texture> normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
@@ -165,7 +167,7 @@ private:
 
   // checks all material textures of a given type and loads the textures if they're not loaded yet.
   // the required info is returned as a Texture struct.
-  vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, string typeName)
+  std::vector<Texture> loadMaterialTextures(aiMaterial *mat, aiTextureType type, std::string typeName)
     {
       std::vector<Texture> textures;
       for(unsigned int i = 0; i < mat->GetTextureCount(type); i++)
@@ -198,9 +200,9 @@ private:
 };
 
 
-unsigned int TextureFromFile(const char *path, const string &directory, bool gamma)
+unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma)
 {
-  string filename = string(path);
+  std::string filename = std::string(path);
   filename = directory + '/' + filename;
 
   unsigned int textureID;
