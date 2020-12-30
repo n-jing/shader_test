@@ -34,10 +34,10 @@ int main()
 
   // build and compile our shader zprogram
   // ------------------------------------
-  Shader planeShader("../shader/plane.vs", "../shader/plane.fs");
-  Shader depthShader("../shader/depth.vs", "../shader/depth.fs");
-  Shader shadowShader("../shader/shadow.vs", "../shader/shadow.fs");
-  Shader dofShader("../shader/dof.vs", "../shader/dof.fs");
+  Shader planeShader("../depth_of_field/plane.vs", "../depth_of_field/plane.fs");
+  Shader depthShader("../depth_of_field/depth.vs", "../depth_of_field/depth.fs");
+  Shader shadowShader("../depth_of_field/shadow.vs", "../depth_of_field/shadow.fs");
+  Shader dofShader("../depth_of_field/dof.vs", "../depth_of_field/dof.fs");
   
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------

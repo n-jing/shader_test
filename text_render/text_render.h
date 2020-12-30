@@ -20,11 +20,12 @@ namespace Jing
   };
 
   //! \brief get text render, with shader hard code
-  Shader GetTextRender(int SCR_WIDTH, int SCR_HEIGHT)
+  Shader GetTextRender(int SCR_WIDTH, int SCR_HEIGHT,
+                       const char *vs_path="../shader/text.vs", const char *fs_path="../shader/text.fs")
   {
     // compile and setup the shader
     // ----------------------------
-    Shader shader("../shader/text.vs", "../shader/text.fs");
+    Shader shader(vs_path, fs_path);
     glm::mat4 projection = glm::ortho(0.0f, static_cast<float>(SCR_WIDTH), 0.0f, static_cast<float>(SCR_HEIGHT));
     shader.use();
     glUniformMatrix4fv(glGetUniformLocation(shader.ID, "projection"), 1, GL_FALSE, glm::value_ptr(projection));

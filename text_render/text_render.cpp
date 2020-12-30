@@ -37,7 +37,7 @@ int main()
   std::map<GLchar, Character> Characters;
   unsigned int VBO, VAO;
   Set26Letter(Characters, VBO, VAO);
-  Shader shader = GetTextRender(SCR_WIDTH, SCR_HEIGHT);
+  Shader shader = GetTextRender(SCR_WIDTH, SCR_HEIGHT, "../text_render/text.vs", "../text_render/text.fs");
   
   // render loop
   // -----------

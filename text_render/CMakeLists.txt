@@ -1,0 +1,13 @@
+ADD_EXECUTABLE(text_render text_render.cpp)
+TARGET_INCLUDE_DIRECTORIES(text_render PUBLIC ${CMAKE_SOURCE_DIR}/source)
+TARGET_INCLUDE_DIRECTORIES(text_render PUBLIC ${CMAKE_SOURCE_DIR}/extern/glad/include
+  ${CMAKE_SOURCE_DIR}/extern/freetype/freetype)
+TARGET_LINK_LIBRARIES(text_render glad dl GL GLU glut glfw ${ASSIMP_LIBRARIES} win_img  freetype png z harfbuzz png m)
+SET_TARGET_PROPERTIES(text_render
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+
+# ADD_SUBDIRECTORY(doc EXCLUDE_FROM_ALL)
