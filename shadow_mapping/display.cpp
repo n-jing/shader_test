@@ -37,7 +37,6 @@ int main()
   Shader planeShader("../shadow_mapping/plane.vs", "../shadow_mapping/plane.fs");
   Shader depthShader("../shadow_mapping/depth.vs", "../shadow_mapping/depth.fs");
   Shader shadowShader("../shadow_mapping/shadow.vs", "../shadow_mapping/shadow.fs");
-  Shader dofShader("../shadow_mapping/dof.vs", "../shadow_mapping/dof.fs");
   
   // set up vertex data (and buffer(s)) and configure vertex attributes
   // ------------------------------------------------------------------
@@ -98,26 +97,12 @@ int main()
     1, 2, 3  // second triangle
   };
 
-  float screen_quad[] = {
-    1.0f,  1.0f, 0.0f, 1.0f, 1.0f,  // top right
-    1.0f, -1.0f, 0.0f,  1.0f, 0.0f,// bottom right
-    -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,// bottom left
-    -1.0f,  1.0f, 0.0f,   0.0f, 1.0f// top left 
-  };
-  unsigned int screen_indices[] = {  // note that we start from 0!
-    0, 1, 3,  // first Triangle
-    1, 2, 3   // second Triangle
-  };
-
   // first, configure the cube's VAO (and VBO)
   unsigned int cubeVBO, cubeVAO;
   InitBuffer(cubeVAO, cubeVBO, sizeof(vertices), vertices, 6, {3, 3}, {0, 3});
   unsigned int planeVBO, planeVAO, planeEBO;
   InitBufferEBO(planeVAO, planeVBO, planeEBO, sizeof(plane_vertices), plane_vertices, 8,
                 sizeof(plane_indices), plane_indices, {3, 3, 2}, {0, 3, 6});
-  unsigned int screenVBO, screenVAO, screenEBO;
-  InitBufferEBO(screenVAO, screenVBO, screenEBO, sizeof(screen_quad), screen_quad, 5,
-                sizeof(screen_indices), screen_indices, {3, 2}, {0, 3});
 
   unsigned int texture = loadTexture("../grid.png");
   planeShader.use();
@@ -145,28 +130,6 @@ int main()
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  unsigned int dofFBO;
-  glGenFramebuffers(1, &dofFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, dofFBO);
-
-  unsigned int sceneBuffer;
-  glGenTextures(1, &sceneBuffer);
-  glBindTexture(GL_TEXTURE_2D, sceneBuffer);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-  glBindTexture(GL_TEXTURE_2D, 0);
-
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sceneBuffer, 0);
-  unsigned int rbo;
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); // use a single renderbuffer object for both a depth AND stencil buffer.
-  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); // now actually attach it
-
 
   // render loop
   // -----------
@@ -214,7 +177,7 @@ int main()
     glBindVertexArray(cubeVAO);
     glDrawArrays(GL_TRIANGLES, 0, 36);
     
-    glBindFramebuffer(GL_FRAMEBUFFER, dofFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     glClearColor(1.f, 1.f, 1.f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -259,20 +222,6 @@ int main()
     glBindTexture(GL_TEXTURE_2D, texture);
     
     glBindVertexArray(planeVAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-    glClearColor(1.f, 1.f, 1.f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_DEPTH_TEST);
-    dofShader.use();
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, sceneBuffer);
-    // dofShader.setVec2("screen_size", 200.0f, 100.0f);
-    
-    glBindVertexArray(screenVAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 
