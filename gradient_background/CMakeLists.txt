@@ -1,0 +1,8 @@
+ADD_EXECUTABLE(gradient_background display.cpp)
+TARGET_INCLUDE_DIRECTORIES(gradient_background PUBLIC ${CMAKE_SOURCE_DIR}/source)
+TARGET_LINK_LIBRARIES(gradient_background glad dl GL GLU glut glfw win_img)
+SET_TARGET_PROPERTIES(gradient_background
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
