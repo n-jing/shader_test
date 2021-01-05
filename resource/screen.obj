@@ -1,0 +1,21 @@
+# 
+# Wavefront OBJ file
+# TextureMontage Atlas
+#
+mtllib screen.mtl
+usemtl MAT_2E8851C
+
+v -1.0 -1.0 0.0
+v 1.0 -1.0 0.0
+v 1.0 1.0 0.0
+v -1.0 1.0 0.0
+
+vt 0.0 0.0
+vt 1.0 0.0
+vt 1.0 1.0
+vt 0.0 1.0
+
+f 1/1 2/2 3/3
+f 1/1 3/3 4/4
+
+# end line must be added to avoid assimp bugs

@@ -44,7 +44,7 @@ int main()
   unsigned int screenBuffer;
   tie(screenFBO, screenBuffer) = Jing::GenerateFrameBufferWithColor(SCR_WIDTH, SCR_HEIGHT);
 
-  Model screen("../resource/screen.obj");
+  Model screen("../resource/screen.obj", false);
   float screen_quad[] = {
     1.0f,  1.0f, 0.0f, 1.0f, 1.0f,  // top right
     1.0f, -1.0f, 0.0f,  1.0f, 0.0f,// bottom right

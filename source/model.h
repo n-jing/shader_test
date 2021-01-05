@@ -33,9 +33,9 @@ public:
   bool gammaCorrection;
 
   // constructor, expects a filepath to a 3D model.
-  Model(std::string const &path, bool gamma = false) : gammaCorrection(gamma)
+  Model(std::string const &path, bool up_clip=true, bool gamma = false) : gammaCorrection(gamma)
     {
-      loadModel(path);
+      loadModel(path, up_clip);
     }
 
   // draws the model, and thus all its meshes
@@ -47,12 +47,17 @@ public:
     
 private:
   // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-  void loadModel(std::string const &path)
+  void loadModel(std::string const &path, bool up_clip = true)
     {
       // read file via ASSIMP
       Assimp::Importer importer;
-      const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs
-                                               | aiProcess_CalcTangentSpace | aiProcess_GenNormals);
+      unsigned int 	pFlags;
+      if (up_clip)
+        pFlags = aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace | aiProcess_GenNormals;
+      else
+        pFlags = aiProcess_Triangulate | aiProcess_CalcTangentSpace | aiProcess_GenNormals;
+
+      const aiScene* scene = importer.ReadFile(path, pFlags);
       // check for errors
       if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
       {
@@ -224,6 +229,8 @@ unsigned int TextureFromFile(const char *path, const std::string &directory, boo
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    GLfloat max_aniso = 1.f;
+    glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max_aniso);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
