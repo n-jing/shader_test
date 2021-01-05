@@ -1,56 +1,37 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 Normal;  
-in vec3 FragPos;  
+in vec2 TexCoords;
 in float v_depth;
-  
-uniform vec3 lightPos; 
-uniform vec3 viewPos; 
-uniform vec3 lightColor;
-uniform vec3 objectColor;
+
+uniform sampler2D texture_diffuse1;
 
 void main()
-{
-  // ambient
-  float ambientStrength = 0.3;
-  vec3 ambient = ambientStrength * lightColor;
-  	
-  // diffuse 
-  vec3 norm = normalize(Normal);
-  vec3 lightDir = normalize(lightPos - FragPos);
-  float diff = max(dot(norm, lightDir), 0.0);
-  vec3 diffuse = diff * lightColor;
-    
-  // specular
-  float specularStrength = 0.5;
-  vec3 viewDir = normalize(viewPos - FragPos);
-  vec3 reflectDir = reflect(-lightDir, norm);  
-  float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
-  vec3 specular = specularStrength * spec * lightColor;  
-        
-  vec3 result = (ambient + diffuse + specular) * objectColor;
-
+{    
+  FragColor = texture(texture_diffuse1, TexCoords);
   float blur = 0;
-  float near_distance = 3.0;
-  float far_distance = 3.0;
-  float near_plane = 3.0;
-  float far_plane = 4.0;
 
-  if(v_depth <= near_plane && v_depth >= far_plane)
+  float dis = 3.0;
+
+  float near = -10.0;
+  float far = -9.0;
+
+  if(v_depth >= near && v_depth <= far)
   {
     blur = 0;
   }
-  else if(v_depth > near_plane)
+  else if(v_depth < near)
   {
-    blur = clamp(v_depth, near_plane, near_plane + near_distance);
-    blur = (blur - near_plane) / near_distance;
+    blur = clamp(abs(v_depth - near) / dis, 0.0f, 1.0f);
   }
-  else if(v_depth < far_plane)
+  else if(v_depth > far)
   {
-    blur = clamp(v_depth, far_plane - far_distance, far_plane);
-    blur = (far_plane - blur) / far_distance;
+    blur = clamp((v_depth-far) / dis, 0.0f, 1.0f);
   }
-
-  FragColor = vec4(result, 1.0f);
-} 
+  else
+  {
+    blur = 0.0f;
+  }
+  
+  FragColor.a = blur;
+}

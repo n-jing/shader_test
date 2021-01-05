@@ -9,7 +9,6 @@ in VS_OUT {
 
 
 in vec2 TexCoord;
-in float v_depth;
 
 // texture sampler
 uniform sampler2D shadowMap;
@@ -62,28 +61,6 @@ void main()
   /* vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;     */
   vec3 lighting = (ambient + (1.0f-shadow)*(diffuse + specular)) * color;
     
-
-
-  float blur = 0;
-  float near_distance = 3.0;
-  float far_distance = 3.0;
-  float near_plane = 3.0;
-  float far_plane = 4.0;
-
-  if(v_depth <= near_plane && v_depth >= far_plane)
-  {
-    blur = 0;
-  }
-  else if(v_depth > near_plane)
-  {
-    blur = clamp(v_depth, near_plane, near_plane + near_distance);
-    blur = (blur - near_plane) / near_distance;
-  }
-  else if(v_depth < far_plane)
-  {
-    blur = clamp(v_depth, far_plane - far_distance, far_plane);
-    blur = (far_plane - blur) / far_distance;
-  }
 
   FragColor = vec4(lighting, 1.0f);
   /* FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f); */
